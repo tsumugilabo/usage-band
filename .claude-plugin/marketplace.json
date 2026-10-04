@@ -1,0 +1,18 @@
+{
+  "name": "usage-band",
+  "owner": {
+    "name": "TSUMUGI Labo."
+  },
+  "plugins": [
+    {
+      "name": "usage-band",
+      "source": "./plugins/usage-band",
+      "description": "入力欄の上に、5時間枠・週の使用量とペース、コンテキストウィンドウの使用量を帯で表示する",
+      "version": "0.1.0",
+      "author": {
+        "name": "TSUMUGI Labo."
+      }
+    }
+  ],
+  "description": "Claude Code の使用量を入力欄の上に帯で表示する mod"
+}

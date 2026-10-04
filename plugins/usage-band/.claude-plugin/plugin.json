@@ -1,0 +1,9 @@
+{
+  "name": "usage-band",
+  "version": "0.1.0",
+  "description": "入力欄の上に、5時間枠・週の使用量とペース、コンテキストウィンドウの使用量を帯で表示する",
+  "author": {
+    "name": "TSUMUGI Labo."
+  },
+  "types": "./types/index.d.ts"
+}
