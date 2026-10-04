@@ -67,29 +67,31 @@ const toRow = (limit: Limit, now: number): Row => {
 const paceText = (row: Row) =>
   row.elapsed === undefined ? '' : row.pace === undefined ? '×—' : `×${(row.pace / 100).toFixed(1)}`
 
-// 1枠ぶんの横幅と、その中の各要素の位置（px）
-const SEG = { label: 0, bar: 24, barWidth: 110, used: 144, pace: 186, reset: 224, width: 272 }
-const GAP = 24
-const HEIGHT = 18
+// 1枠ぶんの横幅と、その中の各要素の位置（px）。見出しは上段、バーと数値は下段
+const SEG = { bar: 0, barWidth: 96, used: 104, pace: 144, reset: 178, width: 220 }
+const GAP = 16
+const HEIGHT = 30
+// 縦の位置はコンテキスト枠（CTX）と揃える: 見出しの基線 12、バーの中心 24
+const ROW = { label: 12, text: 28, barY: 21, barHeight: 6, markerY: 18, markerHeight: 12 }
 
 const segmentSvg = (row: Row, x: number) => {
   const barX = x + SEG.bar
   const fill = (Math.min(100, Math.max(0, row.used)) / 100) * SEG.barWidth
   const parts = [
-    `<text x="${x + SEG.label}" y="13" fill="${COLOR.sub}" font-size="12">${row.label}</text>`,
-    `<rect x="${barX}" y="6" width="${SEG.barWidth}" height="6" rx="3" fill="${COLOR.track}"/>`,
-    `<rect x="${barX}" y="6" width="${fill.toFixed(1)}" height="6" rx="3" fill="${usageColor(row.used) ?? COLOR.bar}"/>`,
+    `<text x="${x}" y="${ROW.label}" fill="${COLOR.sub}" font-size="12">${row.label}</text>`,
+    `<rect x="${barX}" y="${ROW.barY}" width="${SEG.barWidth}" height="${ROW.barHeight}" rx="3" fill="${COLOR.track}"/>`,
+    `<rect x="${barX}" y="${ROW.barY}" width="${fill.toFixed(1)}" height="${ROW.barHeight}" rx="3" fill="${usageColor(row.used) ?? COLOR.bar}"/>`,
   ]
   if (row.elapsed !== undefined) {
     const mx = barX + (row.elapsed / 100) * SEG.barWidth
-    parts.push(`<rect x="${(mx - 1).toFixed(1)}" y="2" width="2" height="14" rx="1" fill="${COLOR.marker}"/>`)
+    parts.push(`<rect x="${(mx - 1).toFixed(1)}" y="${ROW.markerY}" width="2" height="${ROW.markerHeight}" rx="1" fill="${COLOR.marker}"/>`)
   }
   parts.push(
-    `<text x="${x + SEG.used}" y="13" fill="${usageColor(row.used) ?? COLOR.text}" font-size="13" font-weight="500">${row.used}%</text>`,
-    `<text x="${x + SEG.pace}" y="13" fill="${(row.pace !== undefined && paceColor(row.pace)) || COLOR.sub}" font-size="12">${paceText(row)}</text>`,
+    `<text x="${x + SEG.used}" y="${ROW.text}" fill="${usageColor(row.used) ?? COLOR.text}" font-size="13" font-weight="500">${row.used}%</text>`,
+    `<text x="${x + SEG.pace}" y="${ROW.text}" fill="${(row.pace !== undefined && paceColor(row.pace)) || COLOR.sub}" font-size="12">${paceText(row)}</text>`,
   )
   if (row.reset) {
-    parts.push(`<text x="${x + SEG.reset}" y="13" fill="${COLOR.faint}" font-size="11">${row.reset}</text>`)
+    parts.push(`<text x="${x + SEG.reset}" y="${ROW.text}" fill="${COLOR.faint}" font-size="11">${row.reset}</text>`)
   }
   return parts.join('')
 }
@@ -123,7 +125,7 @@ const contextLabel = (c: ContextInfo) =>
     : `${formatTokens(c.tokens)} / ${formatTokens(c.window)} (${c.percent ?? Math.round((c.tokens / c.window) * 100)}%)`
 
 // 右側のコンテキスト枠: 上段に見出しと数値、下段に分類ごとに色分けしたバー
-const CTX = { width: 340, height: 30, barY: 22, barHeight: 4 }
+const CTX = { width: 250, height: 30, barY: 22, barHeight: 4 }
 
 const contextSvg = (c: ContextInfo) => {
   const { width, height, barY, barHeight } = CTX
@@ -204,7 +206,8 @@ export const register: Register = on => {
     const { Box, Svg } = $.ui.resolve(e)
     const left = rows.length > 0 ? bandSvg(rows) : undefined
     return (
-      <Box flexDirection="row" justifyContent="space-between" alignItems="center" width="100%">
+      // 幅が足りないときだけコンテキスト枠を2段目に落とす
+      <Box flexDirection="row" flexWrap="wrap" justifyContent="space-between" alignItems="center" columnGap={2} rowGap={1} width="100%">
         {left ? <Svg source={left.source} alt={bandText(rows)} width={left.width} height={HEIGHT} /> : <Box />}
         {ctx && (
           <Svg
